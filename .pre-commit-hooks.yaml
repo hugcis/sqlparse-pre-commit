@@ -1,0 +1,6 @@
+- id: sqlformat
+  name: SQL Formatter
+  entry: sqlformat -r -k upper -s --wrap_after 120 --inplace
+  language: python
+  files: \.sql$
+  types: [text, file]
