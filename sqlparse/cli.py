@@ -39,7 +39,7 @@ def create_parser():
         usage='%(prog)s  [OPTIONS] FILE, ...',
     )
 
-    parser.add_argument('filename')
+    parser.add_argument('filename', nargs='+')
 
     parser.add_argument(
         '-o', '--outfile',
@@ -144,6 +144,12 @@ def create_parser():
         dest='encoding',
         default='utf-8',
         help='Specify the input encoding (default utf-8)')
+    
+    group.add_argument(
+        '--inplace',
+        action='store_true',
+        default=False,
+        help='modify file in place')
 
     return parser
 
@@ -153,12 +159,8 @@ def _error(msg):
     sys.stderr.write('[ERROR] {}\n'.format(msg))
     return 1
 
-
-def main(args=None):
-    parser = create_parser()
-    args = parser.parse_args(args)
-
-    if args.filename == '-':  # read from stdin
+def process_file(args, filename):
+    if filename == ['-']:  # read from stdin
         wrapper = TextIOWrapper(sys.stdin.buffer, encoding=args.encoding)
         try:
             data = wrapper.read()
@@ -166,11 +168,11 @@ def main(args=None):
             wrapper.detach()
     else:
         try:
-            with open(args.filename, encoding=args.encoding) as f:
+            with open(filename, encoding=args.encoding) as f:
                 data = ''.join(f.readlines())
         except OSError as e:
             return _error(
-                'Failed to read {}: {}'.format(args.filename, e))
+                'Failed to read {}: {}'.format(filename, e))
 
     close_stream = False
     if args.outfile:
@@ -179,6 +181,8 @@ def main(args=None):
             close_stream = True
         except OSError as e:
             return _error('Failed to open {}: {}'.format(args.outfile, e))
+    elif filename != '-' and args.inplace:
+        stream = open(filename, 'w', encoding=args.encoding)
     else:
         stream = sys.stdout
 
@@ -193,4 +197,12 @@ def main(args=None):
     stream.flush()
     if close_stream:
         stream.close()
+    return 0
+
+
+def main(args=None):
+    parser = create_parser()
+    args = parser.parse_args(args)
+    for filename in args.filename:
+         process_file(args, filename)
     return 0
