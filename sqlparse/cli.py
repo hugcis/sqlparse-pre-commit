@@ -192,7 +192,7 @@ def process_file(args, filename):
     except SQLParseError as e:
         return _error('Invalid options: {}'.format(e))
 
-    s = sqlparse.format(data, **formatter_opts)
+    s = sqlparse.format(data, **formatter_opts).strip()
     stream.write(s)
     stream.flush()
     if close_stream:
