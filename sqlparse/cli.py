@@ -194,6 +194,7 @@ def process_file(args, filename):
 
     s = sqlparse.format(data, **formatter_opts).strip()
     stream.write(s)
+    stream.write("\n") # Newline at end of file
     stream.flush()
     if close_stream:
         stream.close()
