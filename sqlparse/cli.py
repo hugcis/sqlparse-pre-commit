@@ -193,6 +193,8 @@ def process_file(args, filename):
         return _error('Invalid options: {}'.format(e))
 
     s = sqlparse.format(data, **formatter_opts).strip()
+    if (new_s := sqlparse.format(s, **formatter_opts).strip()) != s and len(new_s) < len(s): # No idempotence
+        s = new_s
     stream.write(s)
     stream.write("\n") # Newline at end of file
     stream.flush()
